@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+    .navigator {
+        position: static;
+        width: 85%;
+        border-bottom: 1px solid black;
+        margin-bottom: 10px;
+    }
+
+    .item {
+        display: inline-block;
+        margin: 5px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding: 10px;
+    }
+
+    .container {
+        border: 1px solid #ccc;
+        padding: 10px;
+    }
+
+    .close-icon {
+        font-size: 20px;
+        color: red;
+        cursor: pointer;
+        margin-left: 5px;
+    }
+
+    .post-checkbox {
+        margin: 10px;
+    }
+
+    .explain {
+        margin-right: 10px;
+    }
+
+    .buttons {
+        display: flex;
+        align-items: center;
+    }
+
+    .buttons input {
+        margin-right: 10px;
+    }
+</style>
+<body>
+    <nav class="navigator">
+        <h1>🚫🔘 파일 확장자 차단</h1>
+    </nav>
+    파일 확장자에 따라 특정 형식의 파일을 첨부하거나 전송하지 못하도록 제한
+    <form th:method="post" th:action="@{/api/put-default}" class="post-checkbox" enctype="UTF-8" >
+        <div class="explain">고정 확장자</div>
+        <div class="buttons">
+            <input type="checkbox" id="bat" name="fileType" value="bat" th:checked="${defaultList.get(0).getIsChecked()}" onclick="addExtension('bat')" />
+            <label th:for="bat">bat</label>
+            <input type="checkbox" id="cmd" name="fileType" value="cmd" th:checked="${defaultList.get(1).getIsChecked()}" onclick="addExtension('cmd')" />
+            <label th:for="cmd">cmd</label>
+            <input type="checkbox" id="com" name="fileType" value="com" th:checked="${defaultList.get(2).getIsChecked()}" onclick="addExtension('com')" />
+            <label th:for="com">com</label>
+            <input type="checkbox" id="cpl" name="fileType" value="cpl"th:checked="${defaultList.get(3).getIsChecked()}" onclick="addExtension('cpl')" />
+            <label th:for="cpl">cpl</label>
+            <input type="checkbox" id="exe" name="fileType" value="exe" th:checked="${defaultList.get(4).getIsChecked()}" onclick="addExtension('exe')" />
+            <label th:for="exe">exe</label>
+            <input type="checkbox" id="scr" name="fileType" value="scr" th:checked="${defaultList.get(5).getIsChecked()}" onclick="addExtension('scr')" />
+            <label th:for="scr">scr</label>
+            <input type="checkbox" id="js" name="fileType" value="js" th:checked="${defaultList.get(6).getIsChecked()}" onclick="addExtension('js')"/>
+            <label th:for="js">js</label>
+        </div>
+        <br />
+        <div class="explain">커스텀 확장자</div>
+        <div class="buttons">
+            <input type="text" id="new-extension" />
+            <input type="button" value="+추가" onclick="addNewExtension()" />
+        </div>
+    </form>
+    <div class="container" id="dynamic-container">
+        <p th:text="${customList.size() + ' / ' + 200}"></p>
+        <div>
+            <button class="item"
+                    th:each="item, iterStat : ${customList}"
+                    th:attr="data-itemname=${item.name()}"
+                    onclick="deleteCustomExtension(this.getAttribute('data-itemname'))">
+                <span th:text="${item.name()}" />
+                <span class="close-icon"
+                      th:text="X"
+                      onclick="deleteCustomExtension(this.parentElement.getAttribute('data-itemname'))" />
+            </button>
+        </div>
+    </div>
+<script>
+    const addExtension = async (extension) => {
+        const request = await fetch(`/api/put-default?extension=${extension}`, {
+            method: 'POST',
+        });
+
+        alert('입력 값: ' + extension);
+        window.location.reload();
+    }
+
+    const addNewExtension = async () => {
+        const inputValue = document.querySelector('#new-extension').value;
+        if (inputValue.length > 20) {
+            alert('확장자 최대 길이는 20자에요!');
+            return;
+        }
+        if (inputValue.length < 1) {
+            alert('빈칸은 올 수 없어요!');
+            return;
+        }
+
+        const request = await fetch(`/api/put-custom?extension=${inputValue}`, {
+            method: 'POST',
+        });
+        if (request.status === 400) alert('이미 추가된 확장자에요!')
+        else alert('입력 값: ' + inputValue);
+        window.location.reload();
+    }
+
+    const deleteCustomExtension = async (extension) => {
+        console.log(extension);
+        const request = await fetch(`/api/delete-custom?extension=${extension}`, {
+            method: 'DELETE',
+        });
+        window.location.reload();
+    };
+</script>
+</body>
+</html>
